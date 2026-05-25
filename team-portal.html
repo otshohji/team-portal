@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WEBアプリ開発チーム ポータル</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #f7fbfd;
+    --surface: #ffffff;
+    --surface2: #eef7fb;
+    --border: #cce8f4;
+    --border-light: #e4f3fa;
+    --sky: #5bb8d4;
+    --sky-light: #a8d8ea;
+    --sky-pale: #d6eff8;
+    --sky-dim: #5bb8d420;
+    --sky-mid: #5bb8d440;
+    --text: #1e3a47;
+    --text-mid: #4a7a8e;
+    --text-dim: #8ab0be;
+    --shadow: 0 2px 16px rgba(91,184,212,0.10);
+    --shadow-md: 0 4px 28px rgba(91,184,212,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  /* Subtle dot pattern background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(circle, var(--sky-light) 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.25;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen { display: none; position: relative; z-index: 1; }
+  .screen.active { display: block; }
+
+  .center-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  /* ===== GUIDELINE SCREEN ===== */
+  #guideline-screen .center-wrap { flex-direction: column; }
+
+  .guideline-card {
+    width: 100%;
+    max-width: 520px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 36px 36px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .guideline-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--sky-light), var(--sky), var(--sky-light));
+  }
+
+  .guideline-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--sky);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .guideline-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 28px;
+    line-height: 1.4;
+  }
+
+  .guideline-title span { color: var(--sky); }
+
+  .rules-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 13px;
+  }
+
+  .rules-table th {
+    background: var(--surface2);
+    color: var(--sky);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 9px 14px;
+    text-align: left;
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .rules-table td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-mid);
+    line-height: 1.65;
+    vertical-align: top;
+  }
+
+  .rules-table td:first-child {
+    color: var(--text);
+    font-weight: 700;
+    white-space: nowrap;
+    width: 108px;
+    font-size: 12.5px;
+  }
+
+  .rules-table tr:last-child td { border-bottom: none; }
+
+  .guideline-note {
+    background: var(--surface2);
+    border-left: 3px solid var(--sky);
+    padding: 14px 16px;
+    border-radius: 0 8px 8px 0;
+    font-size: 12.5px;
+    color: var(--text-mid);
+    line-height: 1.8;
+    margin-bottom: 28px;
+  }
+
+  .btn-proceed {
+    width: 100%;
+    background: var(--sky);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 3px 12px var(--sky-mid);
+  }
+
+  .btn-proceed:hover { background: #4aa8c4; box-shadow: 0 4px 18px var(--sky-mid); }
+  .btn-proceed:active { transform: scale(0.99); }
+
+  /* ===== LOGIN SCREEN ===== */
+  #login-screen .center-wrap { flex-direction: column; }
+
+  .login-card { width: 340px; }
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .login-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--sky);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .login-title {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--text);
+  }
+
+  .login-title span { color: var(--sky); }
+
+  .login-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 30px 28px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .login-box::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--sky-light), var(--sky), var(--sky-light));
+  }
+
+  .input-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .pw-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    letter-spacing: 0.1em;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 16px;
+  }
+
+  .pw-input:focus {
+    border-color: var(--sky);
+    box-shadow: 0 0 0 3px var(--sky-dim);
+  }
+
+  .btn-login {
+    width: 100%;
+    background: var(--sky);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 13px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 3px 12px var(--sky-mid);
+  }
+
+  .btn-login:hover { background: #4aa8c4; }
+  .btn-login:active { transform: scale(0.98); }
+
+  .error-msg {
+    text-align: center;
+    color: #e05b5b;
+    font-size: 12px;
+    margin-top: 10px;
+    min-height: 16px;
+  }
+
+  .back-link {
+    display: block;
+    text-align: center;
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--sky); }
+
+  /* ===== PORTAL SCREEN ===== */
+  #portal-screen {
+    padding: 36px 24px 80px;
+    max-width: 900px;
+    margin: 0 auto;
+    min-height: 100vh;
+  }
+
+  .portal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 36px;
+    padding-bottom: 20px;
+    border-bottom: 1.5px solid var(--border-light);
+    flex-wrap: nowrap;
+    gap: 12px;
+  }
+
+  .portal-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--sky);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .portal-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .portal-title span { color: var(--sky); }
+
+  .portal-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+  .portal-time {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: right;
+    line-height: 1.8;
+  }
+
+  .logout-btn {
+    background: none;
+    border: 1.5px solid var(--border);
+    color: var(--text-dim);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11.5px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    font-family: 'Noto Sans JP', sans-serif;
+    white-space: nowrap;
+  }
+
+  .logout-btn:hover { color: var(--sky); border-color: var(--sky); }
+
+  .guideline-btn {
+    background: var(--sky-pale);
+    border: 1.5px solid var(--sky-light);
+    color: var(--sky);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11.5px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .guideline-btn:hover { background: var(--sky-dim); border-color: var(--sky); }
+
+  /* Tool cards */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .tool-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border-light);
+    border-radius: 14px;
+    padding: 28px 22px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s, border-color 0.2s;
+    text-decoration: none;
+    display: block;
+    box-shadow: var(--shadow);
+  }
+
+  .tool-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--sky-light);
+  }
+
+  .card-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    font-size: 20px;
+  }
+
+  .card-gemini .card-icon { background: #eaf4fc; }
+  .card-claude .card-icon { background: #fef6ec; }
+  .card-github .card-icon { background: #f0f0f5; }
+
+  .card-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .card-accent {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .card-gemini .card-accent { color: #5b9bd4; }
+  .card-claude .card-accent { color: #c4893a; }
+  .card-github .card-accent { color: #7a7a8e; }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--text-mid);
+    line-height: 1.75;
+  }
+
+  /* Gemini section */
+  .gemini-section {
+    background: var(--surface);
+    border: 1.5px solid var(--border-light);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+
+  .section-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--sky);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-light);
+  }
+
+  .staff-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .staff-btn {
+    background: var(--bg);
+    border: 1.5px solid var(--border-light);
+    border-radius: 10px;
+    padding: 16px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    text-decoration: none;
+    display: block;
+  }
+
+  .staff-btn:hover {
+    border-color: var(--sky);
+    background: var(--sky-pale);
+    transform: translateY(-2px);
+  }
+
+  .staff-icon { font-size: 22px; margin-bottom: 7px; }
+  .staff-name { font-size: 12.5px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .staff-sub { font-family: 'DM Sans', sans-serif; font-size: 10px; color: var(--text-dim); }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(30,58,71,0.35);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+
+  .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
+
+  .modal-box {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 28px;
+    width: 320px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .modal-box::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--sky-light), var(--sky), var(--sky-light));
+  }
+
+  .modal-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .modal-hint {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 18px;
+    line-height: 1.6;
+  }
+
+  .modal-hint span { color: var(--sky); font-weight: 600; }
+
+  .modal-error {
+    font-size: 11.5px;
+    color: #e05b5b;
+    min-height: 16px;
+    margin-bottom: 8px;
+  }
+
+  .modal-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    letter-spacing: 0.1em;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 14px;
+  }
+
+  .modal-input:focus {
+    border-color: var(--sky);
+    box-shadow: 0 0 0 3px var(--sky-dim);
+  }
+
+  .modal-btns { display: flex; gap: 8px; }
+
+  .btn-modal-ok {
+    flex: 1;
+    background: var(--sky);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 11px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  .btn-modal-ok:hover { background: #4aa8c4; }
+
+  .btn-modal-cancel {
+    flex: 1;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 11px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  .btn-modal-cancel:hover { color: var(--text); border-color: var(--text-dim); }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 600px) {
+    .tools-grid { grid-template-columns: 1fr; }
+    .guideline-card { padding: 30px 22px 26px; }
+    #portal-screen { padding: 24px 16px 60px; }
+    .portal-title { font-size: 18px; }
+    .portal-eyebrow { font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== GUIDELINE SCREEN ===== -->
+<div id="guideline-screen" class="screen active">
+  <div class="center-wrap">
+    <div class="guideline-card">
+      <div class="guideline-eyebrow">INFORMATION POLICY</div>
+      <div class="guideline-title">情報取り扱い<span>ガイドライン</span></div>
+
+      <table class="rules-table">
+        <tr>
+          <th>区分</th>
+          <th>ルール</th>
+        </tr>
+        <tr>
+          <td>個人情報</td>
+          <td>利用者・関係事業者・スタッフの個人情報は一切入力禁止</td>
+        </tr>
+        <tr>
+          <td>業績情報</td>
+          <td>会社の売上・業績など社外秘情報の入力禁止</td>
+        </tr>
+        <tr>
+          <td>会社情報</td>
+          <td>会社名・情報を入力する場合は事前申請・承認を必須とする</td>
+        </tr>
+        <tr>
+          <td>個人アカウント</td>
+          <td>個人アカウントへの移行・利用禁止。会社アカウントで一元管理</td>
+        </tr>
+      </table>
+
+      <div class="guideline-note">
+        アプリの設計思想として、利用者の個人情報は一切収集しない（ブラウザのローカルストレージ内で完結）。IPアドレスの収集も行わない。この「ギブの姿勢」がケアマネ・相談員からの信頼形成を促進する。
+      </div>
+
+      <div id="guideline-actions">
+        <button class="btn-proceed" id="btn-to-login" onclick="showLogin()">確認しました　→　ログインへ</button>
+        <button class="btn-proceed" id="btn-back-portal" style="display:none;background:#fff;color:var(--sky);border:1.5px solid var(--sky);box-shadow:none;margin-top:10px;" onclick="showPortal()">← ポータルに戻る</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen" class="screen">
+  <div class="center-wrap">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-eyebrow">TEAM PORTAL</div>
+        <div class="login-title">WEBアプリ<br><span>開発チーム</span></div>
+      </div>
+      <div class="login-box">
+        <label class="input-label">PASSWORD</label>
+        <input type="password" class="pw-input" id="login-input" placeholder="••••••••" autocomplete="off">
+        <button class="btn-login" onclick="doLogin()">ログイン</button>
+        <div class="error-msg" id="login-error"></div>
+      </div>
+      <span class="back-link" onclick="showGuideline()">← ガイドラインに戻る</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PORTAL SCREEN ===== -->
+<div id="portal-screen" class="screen">
+  <div class="portal-header">
+    <div>
+      <div class="portal-eyebrow">TEAM PORTAL</div>
+      <div class="portal-title">WEBアプリ<span>開発チーム</span></div>
+    </div>
+    <div class="portal-right">
+      <div class="portal-time" id="clock"></div>
+      <button class="guideline-btn" onclick="goToGuideline()">📋 ガイドライン</button>
+      <button class="logout-btn" onclick="doLogout()">ログアウト</button>
+    </div>
+  </div>
+
+  <div class="tools-grid">
+    <div class="tool-card card-gemini" onclick="scrollToGemini()">
+      <div class="card-icon">✦</div>
+      <div class="card-name">Gemini</div>
+      <span class="card-accent">GOOGLE AI</span>
+      <div class="card-desc">チームで共有。スタッフごとのチャットを確認・活用できます。</div>
+    </div>
+
+    <div class="tool-card card-claude" onclick="openModal('claude')">
+      <div class="card-icon">◆</div>
+      <div class="card-name">Claude</div>
+      <span class="card-accent">ANTHROPIC AI</span>
+      <div class="card-desc">主にリーダーが使用。コード生成・文書作成に活用。</div>
+    </div>
+
+    <div class="tool-card card-github" onclick="openModal('github')">
+      <div class="card-icon">⬡</div>
+      <div class="card-name">GitHub</div>
+      <span class="card-accent">SOURCE CODE</span>
+      <div class="card-desc">主にリーダーが使用。ソースコードの管理・更新。</div>
+    </div>
+  </div>
+
+  <div class="gemini-section" id="gemini-section">
+    <div class="section-label">GEMINI — スタッフ別チャット</div>
+    <div class="staff-grid" id="staff-grid"></div>
+  </div>
+</div>
+
+<!-- ===== PASSWORD MODAL ===== -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">パスワードを入力</div>
+    <div class="modal-hint" id="modal-hint"></div>
+    <div class="modal-error" id="modal-error"></div>
+    <input type="password" class="modal-input" id="modal-input" placeholder="••••••••" autocomplete="off">
+    <div class="modal-btns">
+      <button class="btn-modal-ok" onclick="submitModal()">開く</button>
+      <button class="btn-modal-cancel" onclick="closeModal()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const TEAM_PASSWORD = 'team';
+
+  const STAFF_MEMBERS = [
+    { name: 'リーダー',  sub: 'leader',  icon: '👤', url: 'https://gemini.google.com/app' },
+    { name: 'スタッフA', sub: 'staff-a', icon: '👤', url: 'https://gemini.google.com/app' },
+    { name: 'スタッフB', sub: 'staff-b', icon: '👤', url: 'https://gemini.google.com/app' },
+  ];
+
+  const TOOL_URLS = {
+    claude: 'https://claude.ai',
+    github: 'https://github.com',
+  };
+
+  let currentTool = null;
+  let isLoggedIn = false;
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function showGuideline() { showScreen('guideline-screen'); }
+
+  function goToGuideline() {
+    // ログイン済みの場合はガイドライン画面に「戻る」ボタンを表示
+    document.getElementById('btn-to-login').style.display = 'none';
+    document.getElementById('btn-back-portal').style.display = 'block';
+    showScreen('guideline-screen');
+  }
+
+  function showPortal() {
+    document.getElementById('btn-to-login').style.display = 'block';
+    document.getElementById('btn-back-portal').style.display = 'none';
+    showScreen('portal-screen');
+  }
+
+  function showLogin() {
+    // ログイン済みならポータルへ直接
+    if (isLoggedIn) { showPortal(); return; }
+    showScreen('login-screen');
+    setTimeout(() => document.getElementById('login-input').focus(), 50);
+  }
+
+  function doLogin() {
+    const val = document.getElementById('login-input').value;
+    if (val === TEAM_PASSWORD) {
+      isLoggedIn = true;
+      showScreen('portal-screen');
+      buildStaffGrid();
+      startClock();
+    } else {
+      document.getElementById('login-error').textContent = 'パスワードが正しくありません';
+      document.getElementById('login-input').value = '';
+    }
+  }
+
+  document.getElementById('login-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  function doLogout() {
+    isLoggedIn = false;
+    document.getElementById('btn-to-login').style.display = 'block';
+    document.getElementById('btn-back-portal').style.display = 'none';
+    showScreen('guideline-screen');
+    document.getElementById('login-input').value = '';
+    document.getElementById('login-error').textContent = '';
+  }
+
+  function buildStaffGrid() {
+    const grid = document.getElementById('staff-grid');
+    grid.innerHTML = '';
+    STAFF_MEMBERS.forEach(s => {
+      const a = document.createElement('a');
+      a.href = s.url;
+      a.target = '_blank';
+      a.className = 'staff-btn';
+      a.innerHTML = `<div class="staff-icon">${s.icon}</div><div class="staff-name">${s.name}</div><div class="staff-sub">${s.sub}</div>`;
+      grid.appendChild(a);
+    });
+  }
+
+  function scrollToGemini() {
+    document.getElementById('gemini-section').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function openModal(tool) {
+    currentTool = tool;
+    const suffix = tool === 'claude' ? 'C' : 'G';
+    document.getElementById('modal-title').textContent = (tool === 'claude' ? 'Claude' : 'GitHub') + ' — パスワードを入力';
+    document.getElementById('modal-hint').innerHTML = `ヒント：チーム共通パスワード ＋ <span>${suffix}</span>`;
+    document.getElementById('modal-error').textContent = '';
+    document.getElementById('modal-input').value = '';
+    document.getElementById('modal').classList.add('active');
+    setTimeout(() => document.getElementById('modal-input').focus(), 50);
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('active');
+    currentTool = null;
+  }
+
+  function submitModal() {
+    const val = document.getElementById('modal-input').value;
+    const expected = TEAM_PASSWORD + (currentTool === 'claude' ? 'C' : 'G');
+    if (val === expected) {
+      closeModal();
+      window.open(TOOL_URLS[currentTool], '_blank');
+    } else {
+      document.getElementById('modal-error').textContent = 'パスワードが正しくありません';
+      document.getElementById('modal-input').value = '';
+    }
+  }
+
+  document.getElementById('modal-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitModal();
+    if (e.key === 'Escape') closeModal();
+  });
+
+  function startClock() {
+    function update() {
+      const now = new Date();
+      const d = now.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' });
+      const t = now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('clock').innerHTML = d + '<br>' + t;
+    }
+    update();
+    setInterval(update, 1000);
+  }
+</script>
+</body>
+</html>
