@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WEBアプリ開発チーム ポータル</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #f7fbfd;
+    --surface: #ffffff;
+    --surface2: #eef7fb;
+    --border: #cce8f4;
+    --border-light: #e4f3fa;
+    --sky: #5bb8d4;
+    --sky-light: #a8d8ea;
+    --sky-pale: #d6eff8;
+    --sky-dim: #5bb8d420;
+    --sky-mid: #5bb8d440;
+    --text: #1e3a47;
+    --text-mid: #4a7a8e;
+    --text-dim: #8ab0be;
+    --shadow: 0 2px 16px rgba(91,184,212,0.10);
+    --shadow-md: 0 4px 28px rgba(91,184,212,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  /* Subtle dot pattern background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(circle, var(--sky-light) 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.25;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen { display: none; position: relative; z-index: 1; }
+  .screen.active { display: block; }
+
+  .center-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  /* ===== GUIDELINE SCREEN ===== */
+  #guideline-screen .center-wrap { flex-direction: column; }
+
+  .guideline-card {
+    width: 100%;
+    max-width: 520px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 36px 36px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .guideline-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--sky-light), var(--sky), var(--sky-light));
+  }
+
+  .guideline-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--sky);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .guideline-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 28px;
+    line-height: 1.4;
+  }
+
+  .guideline-title span { color: var(--sky); }
+
+  .rules-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 13px;
+  }
+
+  .rules-table th {
+    background: var(--surface2);
+    color: var(--sky);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 9px 14px;
+    text-align: left;
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .rules-table td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-mid);
+    line-height: 1.65;
+    vertical-align: top;
+  }
+
+  .rules-table td:first-child {
+    color: var(--text);
+    font-weight: 700;
+    white-space: nowrap;
+    width: 108px;
+    font-size: 12.5px;
+  }
+
+  .rules-table tr:last-child td { border-bottom: none; }
+
+  .guideline-note {
+    background: var(--surface2);
+    border-left: 3px solid var(--sky);
+    padding: 14px 16px;
+    border-radius: 0 8px 8px 0;
+    font-size: 12.5px;
+    color: var(--text-mid);
+    line-height: 1.8;
+    margin-bottom: 28px;
+  }
+
+  .btn-proceed {
+    width: 100%;
+    background: var(--sky);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 3px 12px var(--sky-mid);
+  }
+
+  .btn-proceed:hover { background: #4aa8c4; box-shadow: 0 4px 18px var(--sky-mid); }
+  .btn-proceed:active { transform: scale(0.99); }
+
+  /* ===== LOGIN SCREEN ===== */
+  #login-screen .center-wrap { flex-direction: column; }
+
+  .login-card { width: 340px; }
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .login-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--sky);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .login-title {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--text);
+  }
+
+  .login-title span { color: var(--sky); }
+
+  .login-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 30px 28px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .login-box::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--sky-light), var(--sky), var(--sky-light));
+  }
+
+  .input-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .pw-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    letter-spacing: 0.1em;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 16px;
+  }
+
+  .pw-input:focus {
+    border-color: var(--sky);
+    box-shadow: 0 0 0 3px var(--sky-dim);
+  }
+
+  .btn-login {
+    width: 100%;
+    background: var(--sky);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 13px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 3px 12px var(--sky-mid);
+  }
+
+  .btn-login:hover { background: #4aa8c4; }
+  .btn-login:active { transform: scale(0.98); }
+
+  .error-msg {
+    text-align: center;
+    color: #e05b5b;
+    font-size: 12px;
+    margin-top: 10px;
+    min-height: 16px;
+  }
+
+  .back-link {
+    display: block;
+    text-align: center;
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--sky); }
+
+  /* ===== PORTAL SCREEN ===== */
+  #portal-screen {
+    padding: 36px 24px 80px;
+    max-width: 900px;
+    margin: 0 auto;
+    min-height: 100vh;
+  }
+
+  .portal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 36px;
+    padding-bottom: 20px;
+    border-bottom: 1.5px solid var(--border-light);
+    flex-wrap: nowrap;
+    gap: 12px;
+  }
+
+  .portal-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--sky);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .portal-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .portal-title span { color: var(--sky); }
+
+  .portal-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+  .portal-time {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: right;
+    line-height: 1.8;
+  }
+
+  .logout-btn {
+    background: none;
+    border: 1.5px solid var(--border);
+    color: var(--text-dim);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11.5px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    font-family: 'Noto Sans JP', sans-serif;
+    white-space: nowrap;
+  }
+
+  .logout-btn:hover { color: var(--sky); border-color: var(--sky); }
+
+  .guideline-btn {
+    background: var(--sky-pale);
+    border: 1.5px solid var(--sky-light);
+    color: var(--sky);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11.5px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .guideline-btn:hover { background: var(--sky-dim); border-color: var(--sky); }
+
+  /* Tool cards */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .tool-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border-light);
+    border-radius: 14px;
+    padding: 28px 22px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s, border-color 0.2s;
+    text-decoration: none;
+    display: block;
+    box-shadow: var(--shadow);
+  }
+
+  .tool-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--sky-light);
+  }
+
+  .card-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    font-size: 20px;
+  }
+
+  .card-gemini .card-icon { background: #eaf4fc; }
+  .card-claude .card-icon { background: #fef6ec; }
+  .card-github .card-icon { background: #f0f0f5; }
+
+  .card-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .card-accent {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .card-gemini .card-accent { color: #5b9bd4; }
+  .card-claude .card-accent { color: #c4893a; }
+  .card-github .card-accent { color: #7a7a8e; }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--text-mid);
+    line-height: 1.75;
+  }
+
+  /* Gemini section */
+  .gemini-section {
+    background: var(--surface);
+    border: 1.5px solid var(--border-light);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+
+  .section-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--sky);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-light);
+  }
+
+  .staff-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .staff-btn {
+    background: var(--bg);
+    border: 1.5px solid var(--border-light);
+    border-radius: 10px;
+    padding: 16px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    text-decoration: none;
+    display: block;
+  }
+
+  .staff-btn:hover {
+    border-color: var(--sky);
+    background: var(--sky-pale);
+    transform: translateY(-2px);
+  }
+
+  .staff-icon { font-size: 22px; margin-bottom: 7px; }
+  .staff-name { font-size: 12.5px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .staff-sub { font-family: 'DM Sans', sans-serif; font-size: 10px; color: var(--text-dim); }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(30,58,71,0.35);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+
+  .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
+
+  .modal-box {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 28px;
+    width: 320px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .modal-box::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--sky-light), var(--sky), var(--sky-light));
+  }
+
+  .modal-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .modal-hint {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 18px;
+    line-height: 1.6;
+  }
+
+  .modal-hint span { color: var(--sky); font-weight: 600; }
+
+  .modal-error {
+    font-size: 11.5px;
+    color: #e05b5b;
+    min-height: 16px;
+    margin-bottom: 8px;
+  }
+
+  .modal-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    letter-spacing: 0.1em;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 14px;
+  }
+
+  .modal-input:focus {
+    border-color: var(--sky);
+    box-shadow: 0 0 0 3px var(--sky-dim);
+  }
+
+  .modal-btns { display: flex; gap: 8px; }
+
+  .btn-modal-ok {
+    flex: 1;
+    background: var(--sky);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 11px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  .btn-modal-ok:hover { background: #4aa8c4; }
+
+  .btn-modal-cancel {
+    flex: 1;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 11px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  .btn-modal-cancel:hover { color: var(--text); border-color: var(--text-dim); }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 600px) {
+    .tools-grid { grid-template-columns: 1fr; }
+    .guideline-card { padding: 30px 22px 26px; }
+    #portal-screen { padding: 24px 16px 60px; }
+    .portal-title { font-size: 18px; }
+    .portal-eyebrow { font-size: 10px; }
+  }
+
+  /* ===== MANUAL SCREEN ===== */
+  #manual-screen {
+    padding: 36px 24px 80px;
+    max-width: 900px;
+    margin: 0 auto;
+    min-height: 100vh;
+  }
+  .manual-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    color: var(--text-mid);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'Noto Sans JP', sans-serif;
+    margin-bottom: 28px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .manual-back-btn:hover { background: var(--sky-pale); color: var(--sky); border-color: var(--sky-light); }
+  .manual-doc { background: var(--surface); border-radius: 12px; padding: 48px 52px; box-shadow: var(--shadow); }
+  .manual-doc .doc-header { border-left: 4px solid var(--sky); padding-left: 20px; margin-bottom: 40px; }
+  .manual-doc .doc-meta { font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--text-dim); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px; }
+  .manual-doc .doc-title { font-size: 20px; font-weight: 700; color: var(--text); line-height: 1.4; margin-bottom: 6px; }
+  .manual-doc .doc-subtitle { font-size: 13px; color: var(--text-mid); }
+  .manual-doc .section { margin-bottom: 40px; }
+  .manual-doc .section-title { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600; color: var(--sky); letter-spacing: 0.16em; text-transform: uppercase; border-bottom: 1.5px solid var(--border-light); padding-bottom: 8px; margin-bottom: 18px; }
+  .manual-doc p { font-size: 13px; color: var(--text-mid); margin-bottom: 12px; line-height: 1.9; }
+  .manual-doc strong { color: var(--text); }
+  .manual-doc .role-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 16px 0 28px; }
+  .manual-doc .role-card { border: 1.5px solid var(--border-light); border-radius: 10px; padding: 18px 16px; background: var(--surface); box-shadow: var(--shadow); }
+  .manual-doc .role-card .role-icon { font-size: 22px; margin-bottom: 8px; }
+  .manual-doc .role-card .role-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .manual-doc .role-card .role-tool { font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 600; color: var(--sky); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .manual-doc .flow-wrap { margin: 16px 0 24px; }
+  .manual-doc .flow-item { display: flex; gap: 16px; position: relative; }
+  .manual-doc .flow-item::before { content: ''; position: absolute; left: 15px; top: 34px; bottom: -8px; width: 1.5px; background: var(--border-light); }
+  .manual-doc .flow-item:last-child::before { display: none; }
+  .manual-doc .flow-dot { width: 32px; height: 32px; border-radius: 50%; background: var(--sky-pale); border: 2px solid var(--sky); display: flex; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; color: var(--sky); flex-shrink: 0; margin-top: 2px; }
+  .manual-doc .flow-content { padding-bottom: 20px; flex: 1; }
+  .manual-doc .flow-label { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .manual-doc .flow-who { font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 600; color: var(--sky); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+  .manual-doc .flow-desc { font-size: 12.5px; color: var(--text-mid); line-height: 1.8; margin-bottom: 0; }
+  .manual-doc .prompt-box { background: #f0f7fa; border: 1.5px solid var(--border); border-radius: 8px; padding: 16px 18px; margin: 12px 0; font-size: 12.5px; color: var(--text); line-height: 1.85; }
+  .manual-doc .prompt-label { font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 600; color: var(--sky); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+  .manual-doc .prompt-text { font-family: monospace; font-size: 12px; color: var(--text); line-height: 1.9; white-space: pre-wrap; }
+  .manual-doc .highlight { background: var(--surface2); border-left: 3px solid var(--sky); padding: 14px 18px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+  .manual-doc .highlight p { margin-bottom: 0; font-size: 13px; color: var(--text); }
+  .manual-doc .note { background: #fffbf0; border: 1px solid #e6d58a; border-radius: 6px; padding: 13px 16px; margin: 12px 0; font-size: 12.5px; color: #5a4a00; line-height: 1.8; }
+  .manual-doc .sp-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--sky-pale); border: 1px solid var(--sky-light); border-radius: 999px; padding: 3px 10px; font-size: 11px; font-weight: 600; color: var(--sky); margin-bottom: 8px; }
+  .manual-doc .week-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 16px 0; }
+  .manual-doc .week-table th { background: var(--surface2); color: var(--sky); font-family: 'DM Sans', sans-serif; font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 14px; text-align: left; border-bottom: 1.5px solid var(--border); }
+  .manual-doc .week-table td { padding: 11px 14px; border-bottom: 1px solid var(--border-light); color: var(--text-mid); vertical-align: top; line-height: 1.7; }
+  .manual-doc .week-table td:first-child { color: var(--text); font-weight: 700; white-space: nowrap; width: 80px; }
+  .manual-doc .week-table tr:last-child td { border-bottom: none; }
+  .manual-doc ul { padding-left: 0; margin: 8px 0 12px; list-style: none; }
+  .manual-doc ul li { font-size: 13px; color: var(--text-mid); margin-bottom: 8px; padding-left: 18px; position: relative; line-height: 1.8; }
+  .manual-doc ul li::before { content: '▷'; position: absolute; left: 0; color: var(--sky); font-size: 10px; top: 4px; }
+  .manual-doc hr { border: none; border-top: 1px solid var(--border-light); margin: 36px 0; }
+  .manual-doc .doc-footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border-light); font-size: 11px; color: var(--text-dim); font-family: 'DM Sans', sans-serif; text-align: right; }
+  @media (max-width: 600px) {
+    .manual-doc { padding: 28px 18px; }
+    .manual-doc .role-grid { grid-template-columns: 1fr; }
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ===== GUIDELINE SCREEN ===== -->
+<div id="guideline-screen" class="screen active">
+  <div class="center-wrap">
+    <div class="guideline-card">
+      <div class="guideline-eyebrow">INFORMATION POLICY</div>
+      <div class="guideline-title">情報取り扱い<span>ガイドライン</span></div>
+
+      <table class="rules-table">
+        <tr>
+          <th>区分</th>
+          <th>ルール</th>
+        </tr>
+        <tr>
+          <td>個人情報</td>
+          <td>利用者・関係事業者・スタッフの個人情報は一切入力禁止</td>
+        </tr>
+        <tr>
+          <td>業績情報</td>
+          <td>会社の売上・業績など社外秘情報の入力禁止</td>
+        </tr>
+        <tr>
+          <td>会社情報</td>
+          <td>会社名・情報を入力する場合は事前申請・承認を必須とする</td>
+        </tr>
+        <tr>
+          <td>個人アカウント</td>
+          <td>個人アカウントへの移行・利用禁止。会社アカウントで一元管理</td>
+        </tr>
+      </table>
+
+      <div class="guideline-note">
+        アプリの設計思想として、利用者の個人情報は一切収集しない（ブラウザのローカルストレージ内で完結）。IPアドレスの収集も行わない。この「ギブの姿勢」がケアマネ・相談員からの信頼形成を促進する。
+      </div>
+
+      <div id="guideline-actions">
+        <button class="btn-proceed" id="btn-to-login" onclick="showLogin()">確認しました　→　ログインへ</button>
+        <button class="btn-proceed" id="btn-back-portal" style="display:none;background:#fff;color:var(--sky);border:1.5px solid var(--sky);box-shadow:none;margin-top:10px;" onclick="showPortal()">← ポータルに戻る</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen" class="screen">
+  <div class="center-wrap">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-eyebrow">TEAM PORTAL</div>
+        <div class="login-title">WEBアプリ<br><span>開発チーム</span></div>
+      </div>
+      <div class="login-box">
+        <label class="input-label">PASSWORD</label>
+        <input type="password" class="pw-input" id="login-input" placeholder="••••••••" autocomplete="off">
+        <button class="btn-login" onclick="doLogin()">ログイン</button>
+        <div class="error-msg" id="login-error"></div>
+      </div>
+      <span class="back-link" onclick="showGuideline()">← ガイドラインに戻る</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PORTAL SCREEN ===== -->
+<div id="portal-screen" class="screen">
+  <div class="portal-header">
+    <div>
+      <div class="portal-eyebrow">TEAM PORTAL</div>
+      <div class="portal-title">WEBアプリ<span>開発チーム</span></div>
+    </div>
+    <div class="portal-right">
+      <div class="portal-time" id="clock"></div>
+      <button class="guideline-btn" onclick="goToManual()">📖 マニュアル</button>
+      <button class="guideline-btn" onclick="goToGuideline()">📋 ガイドライン</button>
+      <button class="logout-btn" onclick="doLogout()">ログアウト</button>
+    </div>
+  </div>
+
+  <div class="tools-grid">
+    <div class="tool-card card-gemini" onclick="scrollToGemini()">
+      <div class="card-icon">✦</div>
+      <div class="card-name">Gemini</div>
+      <span class="card-accent">GOOGLE AI</span>
+      <div class="card-desc">チームで共有。スタッフごとのチャットを確認・活用できます。</div>
+    </div>
+
+    <div class="tool-card card-claude" onclick="openModal('claude')">
+      <div class="card-icon">◆</div>
+      <div class="card-name">Claude</div>
+      <span class="card-accent">ANTHROPIC AI</span>
+      <div class="card-desc">主にリーダーが使用。コード生成・文書作成に活用。</div>
+    </div>
+
+    <div class="tool-card card-github" onclick="openModal('github')">
+      <div class="card-icon">⬡</div>
+      <div class="card-name">GitHub</div>
+      <span class="card-accent">SOURCE CODE</span>
+      <div class="card-desc">主にリーダーが使用。ソースコードの管理・更新。</div>
+    </div>
+  </div>
+
+  <div class="gemini-section" id="gemini-section">
+    <div class="section-label">GEMINI — スタッフ別チャット</div>
+    <div class="staff-grid" id="staff-grid"></div>
+  </div>
+</div>
+
+
+<!-- ===== MANUAL SCREEN ===== -->
+<div id="manual-screen" class="screen">
+  <button class="manual-back-btn" onclick="goBackFromManual()">← ポータルに戻る</button>
+  <div class="manual-doc">
+    <div class="doc-header">
+    <div class="doc-meta">WEBアプリ部門　運用マニュアル　ver.1.0</div>
+    <div class="doc-title">チームポータルを中心とした<br>開発・運用フロー</div>
+    <div class="doc-subtitle">リーダー1名＋スタッフ2名　／　初心者でも無理なく動けるチーム設計</div>
+  </div>
+
+  <!-- 0. このマニュアルについて -->
+  <div class="section">
+    <div class="section-title">0. このマニュアルについて</div>
+    <p>本マニュアルは、WEBアプリ部門の3名が<strong>日々の訪問看護業務と両立しながら</strong>、無理なくアプリ開発・運用を進めるための手引きです。</p>
+    <div class="highlight">
+      <p>基本の考え方：<strong>リーダーがGemini・Claudeで作る → スタッフ2名がスキマ時間にチェック・コメントする → リーダーが反映する</strong>という循環で回します。難しいことは最初から求めません。「見てコメントするだけ」から始めれば十分です。</p>
+    </div>
+  </div>
+
+  <!-- 1. 役割分担 -->
+  <div class="section">
+    <div class="section-title">1. 役割分担</div>
+    <div class="role-grid">
+      <div class="role-card">
+        <div class="role-icon">🧑‍💻</div>
+        <div class="role-name">リーダー</div>
+        <div class="role-tool">Gemini ＋ Claude</div>
+        <p>Geminiでプロンプト設計・アイデア出しを行い、Claudeでコードを生成・管理。アプリの土台とマニュアルを作成。</p>
+      </div>
+      <div class="role-card">
+        <div class="role-icon">👀</div>
+        <div class="role-name">スタッフA・B</div>
+        <div class="role-tool">Gemini（閲覧）</div>
+        <p>リーダーのGeminiとのやりとりを覗き見しながら学ぶ。アプリの動作確認・使いやすさのチェックをスキマ時間に行う。</p>
+      </div>
+      <div class="role-card">
+        <div class="role-icon">🏢</div>
+        <div class="role-name">会社</div>
+        <div class="role-tool">週報確認</div>
+        <p>週報で活動内容を確認。定期フィードバックを行い、方向性をすり合わせる。</p>
+      </div>
+    </div>
+    <div class="note">
+      📌 リーダーは「偉い人」ではなく、コード作業の担当者です。本業が忙しい時期はスタッフA・Bが気軽に申し出て役割を交代できます。
+    </div>
+  </div>
+
+  <!-- 2. ポータルを中心とした基本フロー -->
+  <div class="section">
+    <div class="section-title">2. ポータルを中心とした基本フロー</div>
+    <p>すべての活動はチームポータルサイトを起点にします。毎日の流れはシンプルです。</p>
+    <div class="flow-wrap">
+      <div class="flow-item">
+        <div class="flow-dot">1</div>
+        <div class="flow-content">
+          <div class="flow-who">リーダー</div>
+          <div class="flow-label">ポータルを開いてGeminiへ</div>
+          <p class="flow-desc">ポータルからGeminiを起動。その日の作業テーマについてプロンプトを投げ、アイデアや設計を整理する。やりとりはチーム共有アカウントのため、スタッフA・Bもいつでも閲覧できる。</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-dot">2</div>
+        <div class="flow-content">
+          <div class="flow-who">リーダー</div>
+          <div class="flow-label">ClaudeでコードをGitHubへ</div>
+          <p class="flow-desc">Geminiで整理した設計をもとに、ClaudeにHTMLやCSSのコード生成を依頼。完成したコードをGitHubに反映・保存する。</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-dot">3</div>
+        <div class="flow-content">
+          <div class="flow-who">スタッフA・B</div>
+          <div class="flow-label">スキマ時間にアプリを確認・コメント</div>
+          <p class="flow-desc">更新されたアプリをスマホで開いて動作確認。気になった点や改善案をGoogleドライブのコメントシートに記入する。記録の合間・移動中の数分でOK。</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-dot">4</div>
+        <div class="flow-content">
+          <div class="flow-who">リーダー</div>
+          <div class="flow-label">コメントを反映・週報にまとめる</div>
+          <p class="flow-desc">スタッフのコメントをもとにアプリを修正。週末に週報（活動内容・成果物・翌週の予定）を作成して提出する。</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-dot">5</div>
+        <div class="flow-content">
+          <div class="flow-who">会社</div>
+          <div class="flow-label">週報を確認・フィードバック</div>
+          <p class="flow-desc">週報を読んでコメント・方向性のフィードバックを返す。定期面談（月1回程度）で大きな方針をすり合わせる。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Geminiの使い方（プロンプト設計） -->
+  <div class="section">
+    <div class="section-title">3. Geminiの使い方（プロンプト設計入門）</div>
+    <p>Geminiは「何でも相談できる賢い同僚」として使います。最初は難しく考えず、<strong>「状況を説明して、やってほしいことを頼む」</strong>だけで十分です。</p>
+
+    <p><strong>基本のプロンプト構造</strong></p>
+    <div class="prompt-box">
+      <div class="prompt-label">テンプレート</div>
+      <div class="prompt-text">【背景】〇〇をしたい
+【目的】〇〇のため
+【お願い】〇〇してください
+【条件】・〇〇　・〇〇</div>
+    </div>
+
+    <p><strong>実際の使用例①：アプリの改善アイデア出し</strong></p>
+    <div class="prompt-box">
+      <div class="prompt-label">プロンプト例</div>
+      <div class="prompt-text">【背景】ケアマネ向けの訪問看護フローチャートアプリを運用しています
+【目的】もっと使いやすくしたい
+【お願い】改善できそうな点を5つ提案してください
+【条件】・スマホで見やすいこと　・専門用語を使いすぎないこと</div>
+    </div>
+
+    <p><strong>実際の使用例②：マニュアル文章の作成</strong></p>
+    <div class="prompt-box">
+      <div class="prompt-label">プロンプト例</div>
+      <div class="prompt-text">【背景】訪問看護スタッフ向けのAI活用マニュアルを作っています
+【目的】初心者でも読みやすい説明にしたい
+【お願い】「Geminiの基本的な使い方」を200字程度でわかりやすく書いてください
+【条件】・難しい用語を避ける　・箇条書きより文章で</div>
+    </div>
+
+    <div class="highlight">
+      <p>スタッフA・Bはリーダーのやりとりを見ながら「こういう聞き方をするんだ」と自然に学べます。最初は見るだけでOK。慣れてきたら自分でも試してみましょう。</p>
+    </div>
+  </div>
+
+  <!-- 4. Claudeの使い方（コード生成） -->
+  <div class="section">
+    <div class="section-title">4. Claudeの使い方（コード生成・管理）</div>
+    <p>Claudeはリーダーが主に使います。Geminiで整理したアイデアをコードに変換するのが主な役割です。</p>
+
+    <p><strong>基本の使い方</strong></p>
+    <div class="prompt-box">
+      <div class="prompt-label">プロンプト例</div>
+      <div class="prompt-text">以下の要件でHTMLを作成してください。
+
+・ページタイトル：訪問看護フローチャート
+・スマホ表示に最適化
+・「医療保険」「介護保険」のどちらかを選ぶボタンを表示
+・ボタンを押すと次の質問に進む
+・白ベース・水色のアクセントカラー
+
+既存のコードは以下の通りです：
+---
+（ここに今のコードを貼り付ける）
+---</div>
+    </div>
+
+    <div class="note">
+      📌 Claudeへの依頼は「具体的に」が基本です。色・レイアウト・動作など、できるだけ詳しく伝えると精度が上がります。既存コードを貼り付けて「この部分を直して」という使い方が最も効率的です。
+    </div>
+  </div>
+
+  <!-- 5. スタッフA・Bのスキマ時間活用法 -->
+  <div class="section">
+    <div class="section-title">5. スタッフA・B のスキマ時間活用法</div>
+    <p>訪問業務の合間・記録の合間・移動中など、スマホで数分あればできることを整理しました。<strong>1日5〜10分でチームに貢献できます。</strong></p>
+
+    <div class="sp-badge">📱 スマホでできること</div>
+
+    <div class="flow-wrap">
+      <div class="flow-item">
+        <div class="flow-dot">A</div>
+        <div class="flow-content">
+          <div class="flow-label">Geminiのやりとりを覗く（3〜5分）</div>
+          <p class="flow-desc">ポータルからGeminiを開き、リーダーの最近のやりとりを読む。「こういう聞き方があるのか」という発見が自然なAI学習になります。コメント不要・読むだけでOK。</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-dot">B</div>
+        <div class="flow-content">
+          <div class="flow-label">アプリを実際に触って確認（5分）</div>
+          <p class="flow-desc">更新されたアプリをスマホで開いて使ってみる。「ここがわかりにくい」「このボタンが押しにくい」など、現場目線のひと言がそのまま改善につながります。</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-dot">C</div>
+        <div class="flow-content">
+          <div class="flow-label">LINEWORKSに一言投稿（2〜3分）</div>
+          <p class="flow-desc">LINEWORKSのグループラインに投稿する。「〇〇ページの文字が小さい」「ケアマネに見せたら〇〇と言われた」など、短くても構いません。リーダーへの通知にもなるため、コメントシートより即時性があります。</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-dot">D</div>
+        <div class="flow-content">
+          <div class="flow-label">Geminiに自分でも質問してみる（慣れてきたら）</div>
+          <p class="flow-desc">業務で気になったことや調べたいことをGeminiに聞いてみる。正解がなくて大丈夫。「こう聞いたらこう返ってきた」という体験を積み重ねることが目的です。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 週間スケジュール -->
+  <div class="section">
+    <div class="section-title">6. 週間スケジュール（目安）</div>
+    <table class="week-table">
+      <tr>
+        <th>曜日</th>
+        <th>リーダー</th>
+        <th>スタッフA・B</th>
+      </tr>
+      <tr>
+        <td>月曜</td>
+        <td>今週の作業テーマをGeminiと相談・設計</td>
+        <td>先週の更新アプリをスマホで確認</td>
+      </tr>
+      <tr>
+        <td>火〜木</td>
+        <td>Claudeでコード作成・GitHubに反映</td>
+        <td>スキマ時間にGeminiのやりとりを覗く・LINEWORKSに気づきを投稿</td>
+      </tr>
+      <tr>
+        <td>金曜</td>
+        <td>週報作成・提出（活動内容・成果物・翌週予定）</td>
+        <td>週報を読んで気づきがあればコメント</td>
+      </tr>
+      <tr>
+        <td>随時</td>
+        <td>スタッフのコメントを確認・次の作業に反映</td>
+        <td>移動中・記録の合間にアプリを触る</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 6b. GitHubの使い方 -->
+  <div class="section">
+    <div class="section-title">6b. GitHubへのHTML投稿手順</div>
+    <p>Claudeで生成したコードをGitHubに反映する手順です。リーダーが担当しますが、流れを把握しておくとスタッフA・Bも状況を理解しやすくなります。</p>
+
+    <div class="flow-wrap">
+      <div class="flow-item">
+        <div class="flow-dot">1</div>
+        <div class="flow-content">
+          <div class="flow-label">GitHubにログイン</div>
+          <p class="flow-desc">ポータルサイトのGitHubボタンからチームアカウントでログイン（パスワード：teamG）。</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-dot">2</div>
+        <div class="flow-content">
+          <div class="flow-label">対象のリポジトリを開く</div>
+          <p class="flow-desc">更新したいアプリのリポジトリ（フォルダ）を選択。例：homecare-app → homecare-app.html を開く。</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-dot">3</div>
+        <div class="flow-content">
+          <div class="flow-label">ファイルを編集する</div>
+          <p class="flow-desc">ファイルを開いたら右上の鉛筆アイコン（✏️）をタップして編集モードに切り替える。既存のコードを全選択して削除し、Claudeが生成した新しいコードを貼り付ける。</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-dot">4</div>
+        <div class="flow-content">
+          <div class="flow-label">変更内容を保存（コミット）</div>
+          <p class="flow-desc">画面下部の「Commit changes」ボタンを押す。コメント欄に何を変えたか一言書く（例：「フローチャートのボタンデザインを修正」）。「Commit directly to the main branch」を選んでCommit。</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-dot">5</div>
+        <div class="flow-content">
+          <div class="flow-label">反映を確認する</div>
+          <p class="flow-desc">1〜2分待ってからアプリのURLをブラウザで開き、変更が反映されているか確認する。LINEWORKSに「〇〇を更新しました」と投稿してスタッフA・Bに知らせる。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="note">
+      📌 間違えて保存してしまっても大丈夫です。GitHubはすべての変更履歴が残るため、いつでも前のバージョンに戻せます。「History」から元のコードを確認できます。
+    </div>
+  </div>
+
+  <!-- 7. 情報管理ルール（再掲） -->
+  <div class="section">
+    <div class="section-title">7. 情報管理ルール（必須）</div>
+    <p>GeminiもClaudeも、入力した内容はAIの学習に使われる可能性があります。以下のルールを必ず守ってください。</p>
+    <ul>
+      <li><strong>個人情報は絶対に入力しない：</strong>利用者・スタッフ・関係事業者の名前・住所・病状など一切禁止。</li>
+      <li><strong>業績情報は入力しない：</strong>売上・訪問件数・経営に関わる数字は禁止。</li>
+      <li><strong>会社名の入力は事前申請：</strong>会社名や社名が入る文章を作る際は必ずリーダーに確認を取る。</li>
+      <li><strong>会社アカウントのみ使用：</strong>個人のGemini・Claudeアカウントではなくポータルのチームアカウントからのみ使用する。</li>
+    </ul>
+    <div class="note">
+      📌 迷ったら「これを入力したら誰かに見られても困らないか？」を自問してください。少しでも迷ったら入力しないのが原則です。
+    </div>
+  </div>
+
+  <!-- 8. 困ったときは -->
+  <div class="section">
+    <div class="section-title">8. 困ったときは</div>
+    <ul>
+      <li><strong>AIの返答がおかしいとき：</strong>プロンプトをもう少し具体的にして再度試す。それでもダメならリーダーに共有。</li>
+      <li><strong>コードが壊れたとき：</strong>GitHubで前のバージョンに戻せます。リーダーに連絡。</li>
+      <li><strong>情報管理で迷ったとき：</strong>入力をやめてリーダーに確認。</li>
+      <li><strong>本業が忙しくて動けないとき：</strong>遠慮なく申告してください。役割を一時的に調整します。</li>
+    </ul>
+    <div class="highlight">
+      <p>このチームは「できる範囲でやる」が大原則です。完璧にやろうとしなくて大丈夫。小さな積み重ねが半年後の大きな実績になります。</p>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="doc-footer">WEBアプリ部門 運用マニュアル ver.1.0　／　WEBアプリ推進チーム</div>
+  </div>
+</div>
+
+<!-- ===== PASSWORD MODAL ===== -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">パスワードを入力</div>
+    <div class="modal-hint" id="modal-hint"></div>
+    <div class="modal-error" id="modal-error"></div>
+    <input type="password" class="modal-input" id="modal-input" placeholder="••••••••" autocomplete="off">
+    <div class="modal-btns">
+      <button class="btn-modal-ok" onclick="submitModal()">開く</button>
+      <button class="btn-modal-cancel" onclick="closeModal()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const TEAM_PASSWORD = 'team';
+
+  const STAFF_MEMBERS = [
+    { name: 'リーダー',  sub: 'leader',  icon: '👤', url: 'https://gemini.google.com/app' },
+    { name: 'スタッフA', sub: 'staff-a', icon: '👤', url: 'https://gemini.google.com/app' },
+    { name: 'スタッフB', sub: 'staff-b', icon: '👤', url: 'https://gemini.google.com/app' },
+  ];
+
+  const TOOL_URLS = {
+    claude: 'https://claude.ai',
+    github: 'https://github.com',
+  };
+
+  let currentTool = null;
+  let isLoggedIn = false;
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function showGuideline() { showScreen('guideline-screen'); }
+
+  function goToManual() {
+    showScreen('manual-screen');
+  }
+
+  function goBackFromManual() {
+    if (isLoggedIn) {
+      showScreen('portal-screen');
+    } else {
+      showScreen('guideline-screen');
+    }
+  }
+
+  function goToGuideline() {
+    // ログイン済みの場合はガイドライン画面に「戻る」ボタンを表示
+    document.getElementById('btn-to-login').style.display = 'none';
+    document.getElementById('btn-back-portal').style.display = 'block';
+    showScreen('guideline-screen');
+  }
+
+  function showPortal() {
+    document.getElementById('btn-to-login').style.display = 'block';
+    document.getElementById('btn-back-portal').style.display = 'none';
+    showScreen('portal-screen');
+  }
+
+  function showLogin() {
+    // ログイン済みならポータルへ直接
+    if (isLoggedIn) { showPortal(); return; }
+    showScreen('login-screen');
+    setTimeout(() => document.getElementById('login-input').focus(), 50);
+  }
+
+  function doLogin() {
+    const val = document.getElementById('login-input').value;
+    if (val === TEAM_PASSWORD) {
+      isLoggedIn = true;
+      showScreen('portal-screen');
+      buildStaffGrid();
+      startClock();
+    } else {
+      document.getElementById('login-error').textContent = 'パスワードが正しくありません';
+      document.getElementById('login-input').value = '';
+    }
+  }
+
+  document.getElementById('login-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  function doLogout() {
+    isLoggedIn = false;
+    document.getElementById('btn-to-login').style.display = 'block';
+    document.getElementById('btn-back-portal').style.display = 'none';
+    showScreen('guideline-screen');
+    document.getElementById('login-input').value = '';
+    document.getElementById('login-error').textContent = '';
+  }
+
+  function buildStaffGrid() {
+    const grid = document.getElementById('staff-grid');
+    grid.innerHTML = '';
+    STAFF_MEMBERS.forEach(s => {
+      const a = document.createElement('a');
+      a.href = s.url;
+      a.target = '_blank';
+      a.className = 'staff-btn';
+      a.innerHTML = `<div class="staff-icon">${s.icon}</div><div class="staff-name">${s.name}</div><div class="staff-sub">${s.sub}</div>`;
+      grid.appendChild(a);
+    });
+  }
+
+  function scrollToGemini() {
+    document.getElementById('gemini-section').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function openModal(tool) {
+    currentTool = tool;
+    const suffix = tool === 'claude' ? 'C' : 'G';
+    document.getElementById('modal-title').textContent = (tool === 'claude' ? 'Claude' : 'GitHub') + ' — パスワードを入力';
+    document.getElementById('modal-hint').innerHTML = `ヒント：チーム共通パスワード ＋ <span>${suffix}</span>`;
+    document.getElementById('modal-error').textContent = '';
+    document.getElementById('modal-input').value = '';
+    document.getElementById('modal').classList.add('active');
+    setTimeout(() => document.getElementById('modal-input').focus(), 50);
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('active');
+    currentTool = null;
+  }
+
+  function submitModal() {
+    const val = document.getElementById('modal-input').value;
+    const expected = TEAM_PASSWORD + (currentTool === 'claude' ? 'C' : 'G');
+    if (val === expected) {
+      closeModal();
+      window.open(TOOL_URLS[currentTool], '_blank');
+    } else {
+      document.getElementById('modal-error').textContent = 'パスワードが正しくありません';
+      document.getElementById('modal-input').value = '';
+    }
+  }
+
+  document.getElementById('modal-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitModal();
+    if (e.key === 'Escape') closeModal();
+  });
+
+  function startClock() {
+    function update() {
+      const now = new Date();
+      const d = now.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' });
+      const t = now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('clock').innerHTML = d + '<br>' + t;
+    }
+    update();
+    setInterval(update, 1000);
+  }
+</script>
+</body>
+</html>
